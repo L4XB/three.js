@@ -772,6 +772,11 @@ class Octree {
 
 					const positionAttribute = geometry.getAttribute( 'position' );
 
+					// a mirroring transform reverses the winding of every triangle, and with it the
+					// normal the collision tests push along, so its vertices are taken the other way round
+
+					const mirrored = obj.matrixWorld.determinant() < 0;
+
 					for ( let i = 0; i < positionAttribute.count; i += 3 ) {
 
 						const v1 = new Vector3().fromBufferAttribute( positionAttribute, i );
@@ -782,7 +787,7 @@ class Octree {
 						v2.applyMatrix4( obj.matrixWorld );
 						v3.applyMatrix4( obj.matrixWorld );
 
-						this.addTriangle( new Triangle( v1, v2, v3 ) );
+						this.addTriangle( mirrored ? new Triangle( v1, v3, v2 ) : new Triangle( v1, v2, v3 ) );
 
 					}
 

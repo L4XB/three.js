@@ -1657,7 +1657,9 @@ class SVGLoader extends Loader {
 
 			for ( let tIndex = transformsTexts.length - 1; tIndex >= 0; tIndex -- ) {
 
-				const transformText = transformsTexts[ tIndex ].trim();
+				// transforms can be separated by a comma as well as by whitespace
+
+				const transformText = transformsTexts[ tIndex ].replace( /^[\s,]+/, '' ).trim();
 
 				if ( transformText === '' ) continue;
 
@@ -1666,7 +1668,7 @@ class SVGLoader extends Loader {
 
 				if ( openParPos > 0 && openParPos < closeParPos ) {
 
-					const transformType = transformText.slice( 0, openParPos );
+					const transformType = transformText.slice( 0, openParPos ).trim();
 
 					const array = parseFloats( transformText.slice( openParPos + 1 ) );
 

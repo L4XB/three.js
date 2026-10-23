@@ -845,10 +845,19 @@ class SVGLoader extends Loader {
 
 			const x = parseFloatWithUnits( node.getAttribute( 'x' ) || 0 );
 			const y = parseFloatWithUnits( node.getAttribute( 'y' ) || 0 );
-			const rx = parseFloatWithUnits( node.getAttribute( 'rx' ) || node.getAttribute( 'ry' ) || 0 );
-			const ry = parseFloatWithUnits( node.getAttribute( 'ry' ) || node.getAttribute( 'rx' ) || 0 );
 			const w = parseFloatWithUnits( node.getAttribute( 'width' ) );
 			const h = parseFloatWithUnits( node.getAttribute( 'height' ) );
+
+			// a missing, negative or "auto" corner radius takes the value of the other one, and each
+			// radius is at most half of the side it rounds, see
+			// https://www.w3.org/TR/SVG2/shapes.html#RectElement
+
+			const rxValue = parseFloatWithUnits( node.getAttribute( 'rx' ) );
+			const ryValue = parseFloatWithUnits( node.getAttribute( 'ry' ) );
+			const rxValid = rxValue >= 0;
+			const ryValid = ryValue >= 0;
+			const rx = Math.min( rxValid ? rxValue : ( ryValid ? ryValue : 0 ), w / 2 );
+			const ry = Math.min( ryValid ? ryValue : ( rxValid ? rxValue : 0 ), h / 2 );
 
 			// Ellipse arc to Bezier approximation Coefficient (Inversed). See:
 			// https://spencermortensen.com/articles/bezier-circle/

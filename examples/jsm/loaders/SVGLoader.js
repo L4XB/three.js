@@ -918,32 +918,7 @@ class SVGLoader extends Loader {
 
 		function parsePolygonNode( node ) {
 
-			function iterator( match, a, b ) {
-
-				const x = parseFloatWithUnits( a );
-				const y = parseFloatWithUnits( b );
-
-				if ( index === 0 ) {
-
-					path.moveTo( x, y );
-
-				} else {
-
-					path.lineTo( x, y );
-
-				}
-
-				index ++;
-
-			}
-
-			const regex = /([+-]?\d*\.?\d+(?:e[+-]?\d+)?)(?:,|\s)([+-]?\d*\.?\d+(?:e[+-]?\d+)?)/g;
-
-			const path = new ShapePath();
-
-			let index = 0;
-
-			node.getAttribute( 'points' ).replace( regex, iterator );
+			const path = parsePoints( node );
 
 			path.currentPath.autoClose = true;
 
@@ -953,12 +928,39 @@ class SVGLoader extends Loader {
 
 		function parsePolylineNode( node ) {
 
-			function iterator( match, a, b ) {
+			const path = parsePoints( node );
 
-				const x = parseFloatWithUnits( a );
-				const y = parseFloatWithUnits( b );
+			path.currentPath.autoClose = false;
 
-				if ( index === 0 ) {
+			return path;
+
+		}
+
+		function parsePoints( node ) {
+
+			// "points" uses the number syntax of path data, so "10-5" and ".5.5" hold two numbers
+			// each. After a syntax error, the points before it are kept.
+
+			let numbers;
+
+			try {
+
+				numbers = parseFloats( node.getAttribute( 'points' ) || '' );
+
+			} catch ( error ) {
+
+				numbers = error.partial;
+
+			}
+
+			const path = new ShapePath();
+
+			for ( let i = 0; i + 1 < numbers.length; i += 2 ) {
+
+				const x = parseFloatWithUnits( numbers[ i ] );
+				const y = parseFloatWithUnits( numbers[ i + 1 ] );
+
+				if ( i === 0 ) {
 
 					path.moveTo( x, y );
 
@@ -968,19 +970,7 @@ class SVGLoader extends Loader {
 
 				}
 
-				index ++;
-
 			}
-
-			const regex = /([+-]?\d*\.?\d+(?:e[+-]?\d+)?)(?:,|\s)([+-]?\d*\.?\d+(?:e[+-]?\d+)?)/g;
-
-			const path = new ShapePath();
-
-			let index = 0;
-
-			node.getAttribute( 'points' ).replace( regex, iterator );
-
-			path.currentPath.autoClose = false;
 
 			return path;
 
